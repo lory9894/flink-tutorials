@@ -14,6 +14,12 @@ public class TransportOrder implements Deserializable<TransportOrder>{
 
     private String product;
 
+    /***
+     * Constructor for TransportOrder
+     * @param uid user id
+     * @param address user address
+     * @param product product to be delivered
+     */
     public TransportOrder(int uid, String address, String product) {
         this.uid = uid;
         this.address = address;
