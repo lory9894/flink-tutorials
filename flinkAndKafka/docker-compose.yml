@@ -87,6 +87,29 @@ services:
         - kafka-network
         - connection-network
 
+  init-kafka:
+    image: confluentinc/cp-server:7.3.1
+    depends_on:
+      - kafka
+    networks:
+      - kafka-network
+      - connection-network
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until kafka is reachable
+      kafka-topics --bootstrap-server kafka:29092 --list
+      
+      echo -e 'Creating kafka topics'
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic users --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic transportOrders --replication-factor 1 --partitions 1
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic purchases --replication-factor 1 --partitions 1
+
+      
+      echo -e 'Successfully created the following topics:'
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "  
+
 networks:
   flink-network:
   kafka-network:
