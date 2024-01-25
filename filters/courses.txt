@@ -1,0 +1,8 @@
+Recommendations, 2, MachineLearning
+SDC, 5, ComputerScience
+ReactJS, 7, WebProgramming
+DataStructures, 20, ComputerScience
+Hadoop, 15, BigData
+Python, 10, ComputerScience	
+TreeModels, 3, MachineLearning
+JQuery, 8, WebProgramming

@@ -1,0 +1,27 @@
+version: '2.2'
+services:
+
+  jobmanager:
+    image: flink
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    networks:
+      - flink-network
+    environment:
+      - |
+        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager 
+
+  taskmanager:
+    image: flink
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    networks:
+      - flink-network
+    environment:
+      - |
+        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager 
+
+networks:
+  flink-network:
