@@ -2,7 +2,7 @@ version: '2.2'
 services:
 
   jobmanager:
-    image: flink
+    image: flink:1.17.2-java11
     ports:
       - "8082:8081"
     command: jobmanager
@@ -14,7 +14,7 @@ services:
         FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager 
 
   taskmanager:
-    image: flink
+    image: flink:1.17.2-java11
     depends_on:
       - jobmanager
     command: taskmanager

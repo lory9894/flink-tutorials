@@ -13,8 +13,11 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.util.Collector;
 import users.User;
@@ -34,11 +37,6 @@ public class Main {
         DataStream<Purchase> purchaseDataStream =  env.fromSource(kafkaSources.getPurchaseSource(), WatermarkStrategy.forMonotonousTimestamps(), "Kafka Purchases Source")
         .assignTimestampsAndWatermarks(WatermarkStrategy.<Purchase>forMonotonousTimestamps().withTimestampAssigner((event, timestamp) -> event.getEventTimeMillis()));
 
-
-        purchaseDataStream
-                .keyBy(Purchase::getUid)
-                .countWindow(10).process(new GenericPurchaseAveragedCount<GlobalWindow>()).print("Count Window");
-
         DataStream<TransportOrder> orderStream = userDataStream.coGroup(purchaseDataStream)
                 .where(User::getId)
                 .equalTo(Purchase::getUid)
@@ -55,8 +53,6 @@ public class Main {
                     }
                 });
 
-        //orderStream.print("Order Stream");
-
         KafkaSink<TransportOrder> transportOrderSink = KafkaSink.<TransportOrder>builder()
         .setBootstrapServers("kafka:9092")
         .setRecordSerializer(KafkaRecordSerializationSchema.builder()
@@ -72,15 +68,19 @@ public class Main {
         .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
         .build();
 
+        //orderStream.print("Order Stream");
+
         orderStream.sinkTo(transportOrderSink);
+
+        purchaseDataStream
+                .keyBy(Purchase::getUid)
+                .countWindow(10).process(new GenericPurchaseAveragedCount<GlobalWindow>()).print("Count Window");
 
         /*
         purchaseDataStream.
                 keyBy(Purchase::getUid)
-                .window(TumblingEventTimeWindows.of(Time.minutes(2))).process(new PurchaseAveragedWindow<TimeWindow>()).print("Time Window");
-                TODO: fix this, input data wrong
+                .window(TumblingEventTimeWindows.of(Time.seconds(2))).process(new Printer<TimeWindow>()).print("Time Window");
          */
-
         env.execute("Kafka Example");
     }
 
@@ -97,6 +97,19 @@ public class Main {
             out.collect(Tuple2.of(key, sum / count));
         }
     }
+
+    public static class Printer<T extends Window> extends ProcessWindowFunction<Purchase, Purchase, Integer, T> {
+
+
+        @Override
+        public void process(Integer integer, ProcessWindowFunction<Purchase, Purchase, Integer, T>.Context context, Iterable<Purchase> elements, Collector<Purchase> out) throws Exception {
+            for (Purchase p : elements) {
+                System.out.println(p);
+                out.collect(p);
+            }
+        }
+    }
+
 
 }
 
