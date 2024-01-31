@@ -120,7 +120,7 @@ services:
       /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P Pass@Word -Q 'CREATE DATABASE FlinkDB'
       
       echo -e 'Creating tables'
-      /opt/mssql-tools/bin/sqlcmd -b -S sqlserver -U sa -P 'Pass@Word' -d FlinkDB -Q 'CREATE TABLE dbo.averages (uid BIGINT NOT NULL IDENTITY PRIMARY KEY, average float)'
+      /opt/mssql-tools/bin/sqlcmd -b -S sqlserver -U sa -P 'Pass@Word' -d FlinkDB -Q 'CREATE TABLE dbo.averages (uid BIGINT NOT NULL PRIMARY KEY, average float)'
       
       echo -e 'Successfully created database and tables'
       "
