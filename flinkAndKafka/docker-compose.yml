@@ -87,13 +87,51 @@ services:
         - kafka-network
         - connection-network
 
+  sqlserver:
+    hostname: sqlserver
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_PID=Developer
+      - SA_PASSWORD=Pass@Word
+      - MSSQL_AGENT_ENABLED=true
+    ports:
+      - 1433:1433
+    expose:
+      - 1433
+    networks:
+      - connection-network
+
+  init-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    depends_on:
+        - sqlserver
+    networks:
+        - connection-network
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+    entrypoint: [ '/bin/sh', '-c' ]
+    command: |
+      "
+      # blocks until sqlserver is reachable
+      /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P Pass@Word -Q 'SELECT 1'
+      
+      echo -e 'Creating database'
+      /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P Pass@Word -Q 'CREATE DATABASE FlinkDB'
+      
+      echo -e 'Creating tables'
+      /opt/mssql-tools/bin/sqlcmd -b -S sqlserver -U sa -P 'Pass@Word' -d FlinkDB -Q 'CREATE TABLE dbo.averages (uid BIGINT NOT NULL IDENTITY PRIMARY KEY, average float)'
+      
+      echo -e 'Successfully created database and tables'
+      "
+
+
   init-kafka:
     image: confluentinc/cp-server:7.3.1
     depends_on:
       - kafka
     networks:
       - kafka-network
-      - connection-network
     entrypoint: [ '/bin/sh', '-c' ]
     command: |
       "
@@ -109,6 +147,7 @@ services:
       echo -e 'Successfully created the following topics:'
       kafka-topics --bootstrap-server kafka:29092 --list
       "  
+
 
 networks:
   flink-network:
