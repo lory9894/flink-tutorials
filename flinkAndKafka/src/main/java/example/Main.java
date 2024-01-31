@@ -62,6 +62,13 @@ public class Main {
         .setRecordSerializer(KafkaRecordSerializationSchema.builder()
             .setTopic("transportOrders")
             .setValueSerializationSchema(new SerializationSchema<TransportOrder>() { //custom serialization schema, simply .toString() and then .bytes()
+
+                /*
+                TODO
+                  Citare il fatto che avrei potuto usare direttamente Tuple o stringhe (c'è anche la TableAPI che è perfetta per i CSV)
+                    ma ho voluto fare una cosa più generica, più simile a quello che si farebbe con un serialization schema (Avro, json, ecc)
+                    Non ho usato direttamente AVRO perché non lo considero rilevante ai fini della demo.
+                 */
                 @Override
                 public byte[] serialize(TransportOrder element) {
                     return element.serialize();
