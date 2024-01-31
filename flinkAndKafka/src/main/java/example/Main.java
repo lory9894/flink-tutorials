@@ -93,7 +93,8 @@ public class Main {
                                 .withMaxRetries(5)
                                 .build(),
                 new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
-                                .withUrl("jdbc:sqlserver://sqlserver:1433;databaseName=FlinkDB")
+                                .withUrl("jdbc:sqlserver://sqlserver:1433;databaseName=FlinkDB;" +
+                                        "integratedSecurity=false;encrypt=false;trustServerCertificate=false") //la security fa casino con docker
                                 .withDriverName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
                                 .withUsername("sa")
                                 .withPassword("Pass@Word")
