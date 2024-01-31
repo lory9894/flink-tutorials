@@ -15,7 +15,7 @@ public class TransportOrder implements Deserializable<TransportOrder>{
     private String product;
 
     /***
-     * Constructor for TransportOrder
+     * Constructor for TransportOrder, timestamp is set to current time
      * @param uid user id
      * @param address user address
      * @param product product to be delivered
@@ -27,6 +27,13 @@ public class TransportOrder implements Deserializable<TransportOrder>{
         this.timestamp = Instant.ofEpochSecond(System.currentTimeMillis());
     }
 
+    /***
+     * Constructor for TransportOrder, timestamp is set to specified time
+     * @param uid user id
+     * @param address user address
+     * @param product product to be delivered
+     * @param timestamp timestamp of the order
+     */
     public TransportOrder(int uid, String address, String product, Instant timestamp) {
         this.uid = uid;
         this.address = address;
@@ -76,6 +83,10 @@ public class TransportOrder implements Deserializable<TransportOrder>{
                 '}';
     }
 
+    /***
+     * Custom deserialization method the reverse of .toString().bytes()
+     * @return byte array of the string representation of the object
+     */
     @Override
     public TransportOrder fromBytes(byte[] bytes) {
         String string = new String(bytes);
@@ -84,7 +95,7 @@ public class TransportOrder implements Deserializable<TransportOrder>{
                 Integer.parseInt(stringSplit[0]),
                 stringSplit[1],
                 stringSplit[2],
-                Instant.parse(stringSplit[4]));
+                Instant.parse(stringSplit[3])); //TODO: questo prima era stringSplit[4], ha più senso così. magari adesso la TimeWindow va
     }
 
     @Override

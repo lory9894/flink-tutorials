@@ -38,12 +38,13 @@ public class Main {
         DataStream<Purchase> purchaseDataStream =  env.fromSource(kafkaSources.getPurchaseSource(), WatermarkStrategy.forMonotonousTimestamps(), "Kafka Purchases Source")
         .assignTimestampsAndWatermarks(WatermarkStrategy.<Purchase>forMonotonousTimestamps().withTimestampAssigner((event, timestamp) -> event.getEventTimeMillis())); //setting watermarks as monotonous, timestamps are written on object
 
+        //TRANSPORT ORDERS PROCESSING
         //merge user and purchase streams
         DataStream<TransportOrder> orderStream = userDataStream.coGroup(purchaseDataStream)
                 .where(User::getId)
                 .equalTo(Purchase::getUid) //merge on uid
-                .window(GlobalWindows.create()).trigger(CountTrigger.of(1))//new transport order for each combination of user and purchase (with same uid), so trigger on each element
-                .apply(new CoGroupFunction<User, Purchase, TransportOrder>() {
+                .window(GlobalWindows.create()).trigger(CountTrigger.of(1))//new transport order will be created for each combination of user and purchase (with same uid), so trigger on each element
+                .apply(new CoGroupFunction<User, Purchase, TransportOrder>() { //merge function, creates a transport order with user id, address and product
                     @Override
                     public void coGroup(Iterable<User> first, Iterable<Purchase> second, Collector<TransportOrder> out) throws Exception {
                         if (first.iterator().hasNext() && second.iterator().hasNext()){//TODO: this is bad. I made this because not all users have purchases, but this is not the way to do it
@@ -60,7 +61,7 @@ public class Main {
         .setBootstrapServers("kafka:9092")
         .setRecordSerializer(KafkaRecordSerializationSchema.builder()
             .setTopic("transportOrders")
-            .setValueSerializationSchema(new SerializationSchema<TransportOrder>() { //custom serialization schema, simply toString and then .bytes
+            .setValueSerializationSchema(new SerializationSchema<TransportOrder>() { //custom serialization schema, simply .toString() and then .bytes()
                 @Override
                 public byte[] serialize(TransportOrder element) {
                     return element.serialize();
@@ -71,11 +72,12 @@ public class Main {
         .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
         .build();
 
-        //orderStream.print("Order Stream");
-
+        //send transport orders to kafka
         orderStream.sinkTo(transportOrderSink);
 
-        SinkFunction<Tuple2<Integer,Double>> sqlSink = JdbcSink.sink( //no comment, sqlserver è terribile
+        //AVERAGE PURCHASES PROCESSING
+
+        SinkFunction<Tuple2<Integer,Double>> sqlSink = JdbcSink.sink( //tutta sta roba è una "insert on duplicate key update"
                 "MERGE averages AS target\n" +
                         "USING (VALUES (?, ?)) AS source (uid, average)\n" +
                         "ON (target.uid = source.uid)\n" +
@@ -87,12 +89,12 @@ public class Main {
                 ps.setInt(1, t.f0);
                 ps.setDouble(2, t.f1);
                 },
-                JdbcExecutionOptions.builder()
+                JdbcExecutionOptions.builder() //when one of this condition is met, the batch is executed
                                 .withBatchSize(1000)
                                 .withBatchIntervalMs(200)
                                 .withMaxRetries(5)
                                 .build(),
-                new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+                new JdbcConnectionOptions.JdbcConnectionOptionsBuilder() //connection options for sqlserver
                                 .withUrl("jdbc:sqlserver://sqlserver:1433;databaseName=FlinkDB;" +
                                         "integratedSecurity=false;encrypt=false;trustServerCertificate=false") //la security fa casino con docker
                                 .withDriverName("com.microsoft.sqlserver.jdbc.SQLServerDriver")
@@ -103,8 +105,9 @@ public class Main {
         );
 
         purchaseDataStream
-                .keyBy(Purchase::getUid)
-                .countWindow(10).process(new GenericPurchaseAveragedCount<GlobalWindow>()).addSink(sqlSink);
+                .keyBy(Purchase::getUid) //key by uid, partition the stream to one uid per partition
+                .countWindow(10) //triggers when 10 elements are in the window
+                .process(new GenericPurchaseAveragedCount<GlobalWindow>()).addSink(sqlSink);
 
         /*
         purchaseDataStream.
@@ -115,6 +118,11 @@ public class Main {
     }
 
 
+    /***
+     * Generic process window function that calculates the average of a stream of purchases.
+     * returns a stream of tuples (uid, average)
+     * @param <T> type of window (GlobalWindow or TimeWindow)
+     */
     public static class GenericPurchaseAveragedCount<T extends Window> extends ProcessWindowFunction<Purchase, Tuple2<Integer, Double>, Integer, T> {
         @Override
         public void process(Integer key, Context context, Iterable<Purchase> purchases, Collector<Tuple2<Integer, Double>> out) {
@@ -128,8 +136,11 @@ public class Main {
         }
     }
 
+    /***
+     * Debug, prints the elements of a stream present in a window.
+     * @param <T> type of window (GlobalWindow or TimeWindow)
+     */
     public static class Printer<T extends Window> extends ProcessWindowFunction<Purchase, Purchase, Integer, T> {
-
 
         @Override
         public void process(Integer integer, ProcessWindowFunction<Purchase, Purchase, Integer, T>.Context context, Iterable<Purchase> elements, Collector<Purchase> out) throws Exception {

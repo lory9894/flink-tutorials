@@ -72,7 +72,7 @@ public class BuyEventProducer {
          }).sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
         */
 
-        dataStream.sinkTo(kafkaSink); //send the data to Kafka (topic: Orders
+        dataStream.sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
         //run the pipeline
          env.execute();
      }

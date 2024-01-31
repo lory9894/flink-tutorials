@@ -44,7 +44,7 @@ public class KafkaSources {
 
 
     /***
-     * private constructor for singleton
+     * private constructor for singleton, defines 2 kafka sources, for users and purchases
      */
     public KafkaSources() {
         UserSource = KafkaSource.<User>builder()
@@ -52,7 +52,7 @@ public class KafkaSources {
                 .setTopics("users")
                 .setGroupId("consumer-group")
                 .setStartingOffsets(OffsetsInitializer.earliest())
-                .setDeserializer(new GenericKafkaDeserialization<>(User.class))
+                .setDeserializer(new GenericKafkaDeserialization<User>(User.class))
                 .build();
 
         PurchaseSource= KafkaSource.<Purchase>builder()
@@ -60,18 +60,24 @@ public class KafkaSources {
         .setTopics("purchases")
         .setGroupId("my-group")
         .setStartingOffsets(OffsetsInitializer.earliest())
-        .setDeserializer(new GenericKafkaDeserialization<>(Purchase.class))
+        .setDeserializer(new GenericKafkaDeserialization<Purchase>(Purchase.class))
         .build();
     }
 
     /***
-     * Generic Kafka Deserialization class, only used inside KafkaSources
+     * Custom Kafka Deserialization class, only used inside KafkaSources
+     * deserializes a byte array into an object of type T, the serialization schema is custom
+     * (it's only .toString() and then .bytes())
      * @param <T> type of object to deserialize
      */
     static private class GenericKafkaDeserialization<T extends Deserializable<T>> implements KafkaRecordDeserializationSchema<T> {
 
     private final Class<T> type;
 
+    /***
+     * constructor, sets type of object to deserialize, needed because java doesn't allow constructors of generic classes
+     * @param type type of object to deserialize
+     */
     public GenericKafkaDeserialization(Class<T> type) {
         this.type = type;
     }
@@ -87,7 +93,9 @@ public class KafkaSources {
             throw new RuntimeException(e);
         }
     }
-
+    /***
+     * @return type of object to deserialize (equivalent to T.class, but java doesn't allow it)
+     */
     @Override
     public TypeInformation<T> getProducedType() {
         return TypeInformation.of(type);
