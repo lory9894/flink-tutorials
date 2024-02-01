@@ -72,7 +72,19 @@ public class BuyEventProducer {
          }).sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
         */
 
-        dataStream.sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
+
+        if (params.has("delay")) {
+            dataStream.map(new MapFunction<Purchase, Purchase>() {
+                @Override
+                public Purchase map(Purchase value) throws Exception {
+                    sleep((long) (Math.random()*200)); //simulate a random delay
+                    return value;
+                }
+            }).sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
+        } else {
+            dataStream.sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
+        }
+
         //run the pipeline
          env.execute();
      }
