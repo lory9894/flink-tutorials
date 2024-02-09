@@ -13,11 +13,15 @@ import org.apache.flink.core.fs.Path;
 import org.apache.flink.formats.csv.CsvReaderFormat;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.apache.kafka.common.utils.Utils.sleep;
 
 public class BuyEventProducer {
     public static void main(String[] args) throws Exception {
+
+        final Logger logger = LoggerFactory.getLogger(BuyEventProducer.class);
 
          // set up the streaming execution environment
          StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
@@ -48,7 +52,7 @@ public class BuyEventProducer {
              System.exit(1);
          }
 
-         dataStream.print(); //debug print
+         //dataStream.print(); //debug print
 
         //generate a Kafka sink
         KafkaSink<Purchase> kafkaSink = KafkaSink.<Purchase>builder()
@@ -66,6 +70,7 @@ public class BuyEventProducer {
                 @Override
                 public Purchase map(Purchase value) throws Exception {
                     sleep((long) (Math.random()*200)); //simulate a random delay
+                    logger.info("Sending purchase, uid = " + value.getUid());
                     return value;
                 }
             }).sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
