@@ -27,6 +27,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         //ENVIRONMENT SETUP
         final StreamExecutionEnvironment env =  StreamExecutionEnvironment.getExecutionEnvironment();
+        env.setMaxParallelism(3);
         final ParameterTool params = ParameterTool.fromArgs(args);
         env.getConfig().setGlobalJobParameters(params);
 
