@@ -182,6 +182,16 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
       "  
 
+  splunk:
+    image: splunk/splunk:latest
+    ports:
+      - "8000:8000"
+    networks:
+      - connection-network
+    environment:
+      - SPLUNK_START_ARGS=--accept-license
+      - SPLUNK_PASSWORD=Pass@Word
+
 
 networks:
   flink-network:
