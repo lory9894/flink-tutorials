@@ -61,18 +61,6 @@ public class BuyEventProducer {
         .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
         .build();
 
-        /*
-        dataStream.map(new MapFunction<Purchase, Purchase>() {
-
-             @Override
-             public Purchase map(Purchase value) throws Exception {
-                 sleep((long) (Math.random()*500)); //simulate a random delay
-                 return value; //convert the data to a string, so I don't have to write a serializer
-             }
-         }).sinkTo(kafkaSink); //send the data to Kafka (topic: Orders)
-        */
-
-
         if (params.has("delay")) {
             dataStream.map(new MapFunction<Purchase, Purchase>() {
                 @Override
