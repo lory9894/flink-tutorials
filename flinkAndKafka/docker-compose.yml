@@ -23,6 +23,30 @@ services:
       - connection-network
     environment:
       - |
+        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager   
+
+  taskmanager2:
+    image: flink:1.17.2-java11
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    networks:
+      - flink-network
+      - connection-network
+    environment:
+      - |
+        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager 
+
+  taskmanager3:
+    image: flink:1.17.2-java11
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    networks:
+      - flink-network
+      - connection-network
+    environment:
+      - |
         FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager 
 
   zookeeper:
