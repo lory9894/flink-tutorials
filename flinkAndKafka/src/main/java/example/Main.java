@@ -1,6 +1,8 @@
 package example;
 
+import events.BuyEventProducer;
 import events.Purchase;
+import logger.PerformanceLogger;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.CoGroupFunction;
 import org.apache.flink.api.common.serialization.SerializationSchema;
@@ -21,13 +23,17 @@ import org.apache.flink.streaming.api.windowing.triggers.CountTrigger;
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow;
 import org.apache.flink.streaming.api.windowing.windows.Window;
 import org.apache.flink.util.Collector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import users.User;
 
 public class Main {
     public static void main(String[] args) throws Exception {
+        final PerformanceLogger logger = new PerformanceLogger();
+
         //ENVIRONMENT SETUP
         final StreamExecutionEnvironment env =  StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setMaxParallelism(3);
+        //env.setMaxParallelism(3);
         final ParameterTool params = ParameterTool.fromArgs(args);
         env.getConfig().setGlobalJobParameters(params);
 
@@ -51,6 +57,7 @@ public class Main {
                         if (first.iterator().hasNext() && second.iterator().hasNext()){//TODO: this is bad. I made this because not all users have purchases, but this is not the way to do it
                             User user = first.iterator().next();
                             Purchase purchase = second.iterator().next();
+                            logger.logPerformances(user.getId(), purchase.getProduct());
                             out.collect(new TransportOrder(user.getId(),user.getAddress(),purchase.getProduct()));
                         }
 
