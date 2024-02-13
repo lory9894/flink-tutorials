@@ -181,20 +181,6 @@ services:
       kafka-topics --bootstrap-server kafka:29092 --list
       "  
 
-#  splunk:
-#    image: splunk/splunk:latest
-#    ports:
-#      - "8000:8000"
-#      - "8088:8088"
-#      - "8089:8089"
-#    networks:
-#      - connection-network
-#    environment:
-#      - SPLUNK_START_ARGS=--accept-license
-#      - SPLUNK_PASSWORD=Pass@Word
-#      - SPLUNK_DEFAULTS_URL:https://gist.githubusercontent.com/yesmarket/54f292af4a3f0bd64d135528758bd0f8/raw/b583ecd81367d124042be4e7d2b9928147066e80/default.yml
-#      - SPLUNK_HEC_TOKEN:297B4C96-5B44-44D2-A9C1-873862AAD558
-
 
 networks:
   flink-network:
