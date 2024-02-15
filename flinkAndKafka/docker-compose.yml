@@ -1,8 +1,8 @@
-version: '2.2'
+version: '3.8'
 services:
 
   jobmanager:
-    image: flink_log
+    image: flink:1.17.2-java11
     ports:
       - "8082:8081"
     command: jobmanager
@@ -26,7 +26,11 @@ services:
       - connection-network
     environment:
       - |
-        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager   
+        FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager
+    volumes:
+      - type: bind #in questo modo si possono cambiare le configurazioni per il logging a runtime
+        source : src/main/resources/log4j-console.properties
+        target : /opt/flink/conf/log4j-console.properties
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.1
@@ -80,8 +84,6 @@ services:
       - kafka
     links:
       - kafka
-    ports:
-      - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'

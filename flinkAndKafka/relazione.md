@@ -8,9 +8,20 @@ si fa sempre specificando il parallelismo
 Flink si appoggia a log4j e ha come best practice l'uso di slf4j. i dati di log quindi si possono inviare a splunk come viene fatto con tutti gli altri microservizi.
 Ho provato a farlo funzionare e c'è tantissimo setup da fare. chiedere se abbiamo roba già setuppata (tipo un docker compose con splunk ed un micrtoservizio spring che invia log a splunk) in modo da poterlo copiare.
 
-Il logging tramite log4j è configurabile tramite un file di configurazione log4j.properties. ATTENZIONE: se sto runnando su docker devo fare in modo che il file di configurazione sia copiato nel container, altrimenti non funziona.
-(path /opt/flink/conf/log4j.properties del jobmanager e del taskmanager)
+Il logging tramite log4j è configurabile tramite un file di configurazione log4j-console.properties. ATTENZIONE: se sto runnando su docker devo fare in modo che il file di configurazione sia copiato nel container, altrimenti non funziona.
+(path /opt/flink/conf/log4j-console.properties del jobmanager e del taskmanager)
 ci sono altri file di configurazione li dentro, per più info vedere [qui](https://nightlies.apache.org/flink/flink-docs-release-1.18/docs/deployment/advanced/logging/#configuring-log4j-2)
+
+Updates: Michele mi ha detto di non fossilizzarmi su Splunk, di quello se ne occupano altri, io devo solo usare log4j e slf4j e stampare i log su file. mi ha fornito un documento tecnico a riguardo.
+il file di configurazione è log4j-console.properties, che va messo nella cartella /opt/flink/conf/ del jobmanager e del taskmanager. si può cambiare l'impostazione di default tramite i seguenti argomenti da passare alla JVM:-Dlog.file=/opt/flink/log/flink--standalonesession-0-c40902733971.log
+- -Dlog.file=/opt/flink/log/flink--standalonesession-0-c40902733971.log
+- -Dlog4j.configuration=file:/opt/flink/conf/log4j-console.properties
+- -Dlog4j.configurationFile=file:/opt/flink/conf/log4j-console.properties
+- -Dlogback.configurationFile=file:/opt/flink/conf/logback-console.xml
+
+Inoltre ATTENZIONE: si può usare logback, log4j2 e log4j, non confondere le sintassi.
+(vedi [la documentazione di log4j2](https://logging.apache.org/log4j/2.x/manual/configuration.html)
+ho provato logback (gli altri progetti usano quello) ma dopo una giornata persa sono tornato indietro al log4j2, riproverò logback.
 # 2. parallelismo
 In teoria l'ho fatto.
 Il parallelismo esplicito può essere espresso in fase di submit del job, a livello globale tramite la variabile d'ambiente parallelism.default nel docker compose o a livello di singolo operatore tramite il metodo setParallelism.
