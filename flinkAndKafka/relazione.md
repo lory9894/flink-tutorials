@@ -29,6 +29,7 @@ Il maledetto pretende un po' di cambiamenti:
 non fosse che slf4j-log4j12 è il maledetto logger, non slf4j-api. quindi non so veramente che sta succedendo con ste dipendenze.)
 - andare a rimuovere la libreria /opt/flink/lib/log4j-slf4j-impl-*.jar
 - andare a scaricare ed aggiungere le librerie logback-classic-*.jar e logback-core-*.jar nel container, nel path /opt/flink/lib/
+
 # 2. parallelismo
 In teoria l'ho fatto.
 Il parallelismo esplicito può essere espresso in fase di submit del job, a livello globale tramite la variabile d'ambiente parallelism.default nel docker compose o a livello di singolo operatore tramite il metodo setParallelism.
@@ -47,3 +48,6 @@ Da quanto ho capito usando k8s o yarn dovrebbe essere possibile fare in modo che
 With Flink 1.5.0 when running on Yarn or Mesos, you only need to decide on the parallelism of your job and the system will make sure that it starts enough TaskManagers with enough slots to execute your job. This happens completely dynamically and you can even change the parallelism of your job at runtime.
 [source](https://stackoverflow.com/questions/50719147/apache-flink-guideliness-for-setting-parallelism)
 In ultimo l'lastic Scaling dovrebbe anche permettere di continuare il lavoro in caso di failure di uno o più worker, ci ho provato ma si blocca il job, probabilmente bisogna settare il checkpointing.
+
+# 3. apache flink su gke
+

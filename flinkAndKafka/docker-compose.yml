@@ -27,6 +27,8 @@ services:
     environment:
       - |
         FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager
+    deploy:
+      replicas: 2
     volumes:
       - type: bind #in questo modo si possono cambiare le configurazioni per il logging a runtime
         source : src/main/resources/log4j-console.properties
@@ -40,6 +42,21 @@ services:
       - type: bind
         source : src/main/resources/logback-core-1.2.13.jar
         target : /opt/flink/lib/logback-core-1.2.13.jar
+
+  taskrunner:
+      image: taskrunner
+      build:
+        context: ./
+        dockerfile: Dockerfile_taskrunner
+      depends_on:
+        - kafka
+      networks:
+        - flink-network
+        - connection-network
+      environment:
+        - |
+          FLINK_PROPERTIES=jobmanager.rpc.address: jobmanager
+
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.1

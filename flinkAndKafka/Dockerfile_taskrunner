@@ -1,0 +1,8 @@
+FROM flink:1.17.2-java11
+
+WORKDIR /home
+COPY ../target/flinkAndKafka-1.0-SNAPSHOT.jar program.jar
+ADD ../csvs/ csvs/
+COPY entrypoint.sh entrypoint.sh
+
+ENTRYPOINT ["bash", "entrypoint.sh"]
