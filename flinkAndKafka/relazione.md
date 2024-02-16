@@ -22,6 +22,13 @@ il file di configurazione è log4j-console.properties, che va messo nella cartel
 Inoltre ATTENZIONE: si può usare logback, log4j2 e log4j, non confondere le sintassi.
 (vedi [la documentazione di log4j2](https://logging.apache.org/log4j/2.x/manual/configuration.html)
 ho provato logback (gli altri progetti usano quello) ma dopo una giornata persa sono tornato indietro al log4j2, riproverò logback.
+
+Il maledetto pretende un po' di cambiamenti:
+- aggiungere il file di configurazione logback-console.xml nel container nella cartella /opt/flink/conf/
+- aggiungere la dipendenza di logback nel file pom.xml e rimuovere le dipendenze di slf4j (tutte tranne slf4j-log4j12, che boh, non dovrebbe... in realtà dovrebbe rimanere solo slf4j-api, ma da errori dato che a quel punto ha 2 logger.
+non fosse che slf4j-log4j12 è il maledetto logger, non slf4j-api. quindi non so veramente che sta succedendo con ste dipendenze.)
+- andare a rimuovere la libreria /opt/flink/lib/log4j-slf4j-impl-*.jar
+- andare a scaricare ed aggiungere le librerie logback-classic-*.jar e logback-core-*.jar nel container, nel path /opt/flink/lib/
 # 2. parallelismo
 In teoria l'ho fatto.
 Il parallelismo esplicito può essere espresso in fase di submit del job, a livello globale tramite la variabile d'ambiente parallelism.default nel docker compose o a livello di singolo operatore tramite il metodo setParallelism.
