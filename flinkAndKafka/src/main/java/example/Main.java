@@ -34,6 +34,7 @@ public class Main {
         //ENVIRONMENT SETUP
         final StreamExecutionEnvironment env =  StreamExecutionEnvironment.getExecutionEnvironment();
         //env.setMaxParallelism(3);
+        env.enableCheckpointing(6000);
         final ParameterTool params = ParameterTool.fromArgs(args);
         env.getConfig().setGlobalJobParameters(params);
 

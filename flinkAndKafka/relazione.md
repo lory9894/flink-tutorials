@@ -49,5 +49,6 @@ With Flink 1.5.0 when running on Yarn or Mesos, you only need to decide on the p
 [source](https://stackoverflow.com/questions/50719147/apache-flink-guideliness-for-setting-parallelism)
 In ultimo l'lastic Scaling dovrebbe anche permettere di continuare il lavoro in caso di failure di uno o più worker, ci ho provato ma si blocca il job, probabilmente bisogna settare il checkpointing.
 
-# 3. apache flink su gke
+UPDATE: settando il checkpointing funziona, se un worker muore il suo lavoro viene passato ad un'altro worker disponibile. se non ci sono worker disponibili, il job si blocca e riparte appena c'è un worker disponibile.
+
 
