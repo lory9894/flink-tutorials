@@ -31,6 +31,15 @@ services:
       - type: bind #in questo modo si possono cambiare le configurazioni per il logging a runtime
         source : src/main/resources/log4j-console.properties
         target : /opt/flink/conf/log4j-console.properties
+      - type: bind
+        source : src/main/resources/logback-console.xml
+        target : /opt/flink/conf/logback-console.xml
+      - type: bind
+        source : src/main/resources/logback-classic-1.2.13.jar
+        target : /opt/flink/lib/logback-classic-1.2.13.jar
+      - type: bind
+        source : src/main/resources/logback-core-1.2.13.jar
+        target : /opt/flink/lib/logback-core-1.2.13.jar
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.3.1
